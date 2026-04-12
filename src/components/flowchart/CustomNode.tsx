@@ -22,6 +22,10 @@ export interface CustomNodeData {
   showBottom?: boolean;
   showLeft?: boolean;
   showRight?: boolean;
+  topLabel?: string;
+  bottomLabel?: string;
+  leftLabel?: string;
+  rightLabel?: string;
 }
 
 const CustomNode = ({ id, data, selected }: NodeProps) => {
@@ -37,14 +41,18 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
     showTop = true,
     showBottom = true,
     showLeft = true,
-    showRight = true
+    showRight = true,
+    topLabel,
+    bottomLabel,
+    leftLabel,
+    rightLabel
   } = data as unknown as CustomNodeData;
 
   const updateNodeInternals = useUpdateNodeInternals();
 
   useEffect(() => {
     updateNodeInternals(id);
-  }, [id, shape, targetPos, sourcePos, showTarget, showSource, showTop, showBottom, showLeft, showRight, updateNodeInternals]);
+  }, [id, shape, targetPos, sourcePos, showTarget, showSource, showTop, showBottom, showLeft, showRight, topLabel, bottomLabel, leftLabel, rightLabel, updateNodeInternals]);
 
   const getIcon = () => {
     switch (type) {
@@ -97,10 +105,30 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
       {/* Handles for Diamond (4 points) or standard (2 points) */}
       {shape === 'diamond' ? (
         <>
-          {showTop && <Handle type="target" position={Position.Top} id="top" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />}
-          {showBottom && <Handle type="source" position={Position.Bottom} id="bottom" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />}
-          {showLeft && <Handle type="source" position={Position.Left} id="left" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />}
-          {showRight && <Handle type="source" position={Position.Right} id="right" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />}
+          {showTop && (
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 flex flex-col items-center">
+              {topLabel && <span className="text-[8px] font-bold text-primary bg-white px-1 rounded border border-primary/20 mb-1 whitespace-nowrap -translate-y-full absolute top-0">{topLabel}</span>}
+              <Handle type="target" position={Position.Top} id="top" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />
+            </div>
+          )}
+          {showBottom && (
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex flex-col items-center">
+              <Handle type="source" position={Position.Bottom} id="bottom" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />
+              {bottomLabel && <span className="text-[8px] font-bold text-primary bg-white px-1 rounded border border-primary/20 mt-1 whitespace-nowrap translate-y-full absolute bottom-0">{bottomLabel}</span>}
+            </div>
+          )}
+          {showLeft && (
+            <div className="absolute top-1/2 -left-1 -translate-y-1/2 flex items-center">
+              {leftLabel && <span className="text-[8px] font-bold text-primary bg-white px-1 rounded border border-primary/20 mr-1 whitespace-nowrap -translate-x-full absolute left-0">{leftLabel}</span>}
+              <Handle type="source" position={Position.Left} id="left" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />
+            </div>
+          )}
+          {showRight && (
+            <div className="absolute top-1/2 -right-1 -translate-y-1/2 flex items-center">
+              <Handle type="source" position={Position.Right} id="right" style={baseHandleStyle} className="hover:scale-125 transition-transform shadow-sm !bg-primary" />
+              {rightLabel && <span className="text-[8px] font-bold text-primary bg-white px-1 rounded border border-primary/20 ml-1 whitespace-nowrap translate-x-full absolute right-0">{rightLabel}</span>}
+            </div>
+          )}
         </>
       ) : (
         <>

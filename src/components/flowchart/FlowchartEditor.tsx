@@ -317,6 +317,22 @@ const FlowchartEditor = () => {
     }
   }, [setNodes, closeMenu, nodes]);
 
+  const updateHandleLabel = useCallback((id: string, type: 'top' | 'bottom' | 'left' | 'right', label: string) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === id) {
+          const newData = { ...node.data };
+          if (type === 'top') newData.topLabel = label;
+          else if (type === 'bottom') newData.bottomLabel = label;
+          else if (type === 'left') newData.leftLabel = label;
+          else if (type === 'right') newData.rightLabel = label;
+          return { ...node, data: newData };
+        }
+        return node;
+      })
+    );
+  }, [setNodes]);
+
   const toggleLock = useCallback(() => setIsLocked((prev) => !prev), []);
   const toggleMove = useCallback(() => setIsMoveEnabled((prev) => !prev), []);
   const toggleMiniMap = useCallback(() => setShowMiniMap((prev) => !prev), []);
@@ -470,50 +486,91 @@ const FlowchartEditor = () => {
             
             <div className="space-y-4">
               {menuNode.data.shape === 'diamond' ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Top</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => toggleHandleVisibility(menu.id, 'top')}
-                    >
-                      {menuNode.data.showTop === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Bottom</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => toggleHandleVisibility(menu.id, 'bottom')}
-                    >
-                      {menuNode.data.showBottom === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Left</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => toggleHandleVisibility(menu.id, 'left')}
-                    >
-                      {menuNode.data.showLeft === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Right</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => toggleHandleVisibility(menu.id, 'right')}
-                    >
-                      {menuNode.data.showRight === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    </Button>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* Top Handle */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Top Point</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => toggleHandleVisibility(menu.id, 'top')}
+                        >
+                          {menuNode.data.showTop === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                      <Input 
+                        placeholder="Label (e.g. YES)" 
+                        className="h-7 text-[10px] uppercase font-bold"
+                        value={menuNode.data.topLabel || ''}
+                        onChange={(e) => updateHandleLabel(menu.id, 'top', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Bottom Handle */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Bottom Point</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => toggleHandleVisibility(menu.id, 'bottom')}
+                        >
+                          {menuNode.data.showBottom === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                      <Input 
+                        placeholder="Label (e.g. NO)" 
+                        className="h-7 text-[10px] uppercase font-bold"
+                        value={menuNode.data.bottomLabel || ''}
+                        onChange={(e) => updateHandleLabel(menu.id, 'bottom', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Left Handle */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Left Point</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => toggleHandleVisibility(menu.id, 'left')}
+                        >
+                          {menuNode.data.showLeft === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                      <Input 
+                        placeholder="Label" 
+                        className="h-7 text-[10px] uppercase font-bold"
+                        value={menuNode.data.leftLabel || ''}
+                        onChange={(e) => updateHandleLabel(menu.id, 'left', e.target.value)}
+                      />
+                    </div>
+
+                    {/* Right Handle */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Right Point</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => toggleHandleVisibility(menu.id, 'right')}
+                        >
+                          {menuNode.data.showRight === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                      <Input 
+                        placeholder="Label" 
+                        className="h-7 text-[10px] uppercase font-bold"
+                        value={menuNode.data.rightLabel || ''}
+                        onChange={(e) => updateHandleLabel(menu.id, 'right', e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
