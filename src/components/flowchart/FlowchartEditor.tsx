@@ -8,7 +8,11 @@ import {
   useNodesState, 
   useEdgesState, 
   addEdge, 
-  Connection 
+  Connection,
+  ReactFlowProvider,
+  useReactFlow,
+  NodeChange,
+  applyNodeChanges
 } from '@xyflow/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -23,7 +27,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Square, Circle, Diamond, RectangleHorizontal } from 'lucide-react';
+import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon } from 'lucide-react';
 import { NodeShape } from './CustomNode';
 
 const SECTION_WIDTH = 240;
@@ -38,7 +42,38 @@ interface MenuState {
   left: number;
 }
 
-const FlowchartEditor = () => {
+const recalculateSectionPositions = (nds: Node[]) => {
+  const sections = nds.filter((n) => n.type === 'sectionNode');
+  const otherNodes = nds.filter((n) => n.type !== 'sectionNode');
+
+  // Stable sort: Start -> Users (by current X) -> End
+  const startSection = sections.find((s) => s.id === 'section-start');
+  const endSection = sections.find((s) => s.id === 'section-end');
+  const userSections = sections
+    .filter((s) => s.id !== 'section-start' && s.id !== 'section-end')
+    .sort((a, b) => a.position.x - b.position.x);
+
+  const sortedSections = [
+    ...(startSection ? [startSection] : []),
+    ...userSections,
+    ...(endSection ? [endSection] : []),
+  ];
+
+  let currentX = 0;
+  const updatedSections = sortedSections.map((s) => {
+    const width = (s.measured?.width ?? s.style?.width ?? SECTION_WIDTH) as number;
+    const updated = {
+      ...s,
+      position: { x: currentX, y: 0 },
+    };
+    currentX += width + SECTION_GAP;
+    return updated;
+  });
+
+  return [...updatedSections, ...otherNodes];
+};
+
+const FlowchartEditorContent = () => {
   const [isLocked, setIsLocked] = useState(false);
   const [isMoveEnabled, setIsMoveEnabled] = useState(false); 
   const [showMiniMap, setShowMiniMap] = useState(false); 
@@ -48,7 +83,9 @@ const FlowchartEditor = () => {
   const [isShapeSelectionOpen, setIsShapeSelectionOpen] = useState(false);
   const [activeParentId, setActiveParentId] = useState<string | null>(null);
 
-  const addNewNode = useCallback((parentId: string, shape: NodeShape = 'rectangle') => {
+  const { screenToFlowPosition } = useReactFlow();
+
+  const addNewNode = useCallback((parentId: string, shape: NodeShape = 'rectangle', position: { x: number, y: number } = { x: 45, y: 105 }) => {
     const id = `node-${Date.now()}`;
     const newNode: Node = {
       id,
@@ -63,9 +100,9 @@ const FlowchartEditor = () => {
         showTarget: true,
         showSource: true
       },
-      position: { x: 45, y: 105 }, 
-      width: shape === 'rectangle' ? NODE_WIDTH : 100,
-      height: shape === 'rectangle' ? NODE_HEIGHT : 100,
+      position, 
+      width: (shape === 'rectangle' || shape === 'rectangleTan' || shape === 'hexagon' || shape === 'hexagonLime') ? NODE_WIDTH : (shape === 'preparation' ? 115 : 100),
+      height: (shape === 'rectangle' || shape === 'rectangleTan' || shape === 'hexagon' || shape === 'hexagonLime') ? NODE_HEIGHT : (shape === 'preparation' ? 80 : 100),
       parentId: parentId,
       extent: 'parent',
       draggable: !isLocked && isMoveEnabled,
@@ -120,7 +157,7 @@ const FlowchartEditor = () => {
     {
       id: 'node-start',
       type: 'workflowNode',
-      data: { label: 'Initialize Request', type: 'start', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Start Process', type: 'start', shape: 'hexagon', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -129,9 +166,9 @@ const FlowchartEditor = () => {
       draggable: false,
     },
     {
-      id: 'node-u1-1',
+      id: 'node-review',
       type: 'workflowNode',
-      data: { label: 'Verify Details', type: 'user', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Initial Review', type: 'user', shape: 'rectangle', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -140,9 +177,9 @@ const FlowchartEditor = () => {
       draggable: false,
     },
     {
-      id: 'node-u1-2',
+      id: 'node-detail-check',
       type: 'workflowNode',
-      data: { label: 'Submit Proof', type: 'user', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Detail Verification', type: 'user', shape: 'rectangleTan', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 195 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -151,21 +188,10 @@ const FlowchartEditor = () => {
       draggable: false,
     },
     {
-      id: 'node-u2-1',
+      id: 'node-decision',
       type: 'workflowNode',
-      data: { label: 'Is Valid?', type: 'user', shape: 'diamond', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
-      position: { x: 70, y: 60 },
-      width: 100,
-      height: 100,
-      parentId: 'section-user2',
-      extent: 'parent',
-      draggable: false,
-    },
-    {
-      id: 'node-u2-2',
-      type: 'workflowNode',
-      data: { label: 'Approve Request', type: 'user', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
-      position: { x: 45, y: 195 },
+      data: { label: 'Approval Required?', type: 'user', shape: 'diamond', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true, showTop: true, showBottom: true, showLeft: true, showRight: true },
+      position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
       parentId: 'section-user2',
@@ -175,7 +201,7 @@ const FlowchartEditor = () => {
     {
       id: 'node-end',
       type: 'workflowNode',
-      data: { label: 'Archive Record', type: 'end', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Process Complete', type: 'end', shape: 'hexagonLime', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -186,14 +212,37 @@ const FlowchartEditor = () => {
   ];
 
   const INITIAL_EDGES: Edge[] = [
-    { id: 'e-start-u1', source: 'node-start', sourceHandle: 'source', target: 'node-u1-1', targetHandle: 'target', animated: true },
-    { id: 'e-u1-1-u1-2', source: 'node-u1-1', sourceHandle: 'source', target: 'node-u1-2', targetHandle: 'target' },
-    { id: 'e-u1-2-u2-1', source: 'node-u1-2', sourceHandle: 'source', target: 'node-u2-1', targetHandle: 'top', animated: true },
-    { id: 'e-u2-1-u2-2', source: 'node-u2-1', sourceHandle: 'right', target: 'node-u2-2', targetHandle: 'target' },
-    { id: 'e-u2-2-end', source: 'node-u2-2', sourceHandle: 'source', target: 'node-end', targetHandle: 'target', animated: true },
+    { id: 'e-start-review', source: 'node-start', sourceHandle: 'source', target: 'node-review', targetHandle: 'target', animated: true },
+    { id: 'e-review-detail', source: 'node-review', sourceHandle: 'source', target: 'node-detail-check', targetHandle: 'target' },
+    { id: 'e-detail-decision', source: 'node-detail-check', sourceHandle: 'source', target: 'node-decision', targetHandle: 'top', animated: true },
+    { id: 'e-decision-end', source: 'node-decision', sourceHandle: 'right', target: 'node-end', targetHandle: 'target', animated: true },
   ];
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(INITIAL_NODES);
+  const [nodes, setNodes] = useNodesState(INITIAL_NODES);
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      setNodes((nds) => {
+        const nextNodes = applyNodeChanges(changes, nds);
+        
+        // Check if any sectionNode changed dimensions or was added/removed
+        const hasSectionChange = changes.some(c => {
+          const changeType = c.type as string;
+          if (changeType === 'dimensions' || changeType === 'remove') {
+            const nodeId = (c as any).id;
+            const changedNode = nds.find(n => n.id === nodeId);
+            return changedNode?.type === 'sectionNode';
+          }
+          return false;
+        });
+
+        if (hasSectionChange) {
+          return recalculateSectionPositions(nextNodes);
+        }
+        return nextNodes;
+      });
+    },
+    [setNodes]
+  );
   const [edges, setEdges, onEdgesChange] = useEdgesState(INITIAL_EDGES);
 
   useEffect(() => {
@@ -341,29 +390,24 @@ const FlowchartEditor = () => {
     if (!newSectionName.trim()) return;
 
     setNodes((nds) => {
-      const endSection = nds.find((n) => n.id === 'section-end');
-      if (!endSection) return nds;
-
-      const currentEndX = endSection.position.x;
       const newUserSectionWidth = SECTION_WIDTH + 40;
-      const shiftAmount = newUserSectionWidth + SECTION_GAP;
+      // We place it at a high X initially so it sorts correctly at the end but before "End" section
+      // The recalculateSectionPositions will fix the exact X
+      const maxX = nds
+        .filter(n => n.type === 'sectionNode' && n.id !== 'section-end')
+        .reduce((max, n) => Math.max(max, n.position.x + ((n.style?.width as number) || SECTION_WIDTH)), 0);
 
       const newUserSection: Node = {
         id: `section-user-${Date.now()}`,
         type: 'sectionNode',
         data: { label: newSectionName, isLocked, onAddChild: addNewNode },
-        position: { x: currentEndX, y: 0 },
+        position: { x: maxX + SECTION_GAP, y: 0 },
         style: { width: newUserSectionWidth, height: SECTION_HEIGHT },
         selectable: !isLocked,
         draggable: false,
       };
 
-      return nds.map((node) => {
-        if (node.id === 'section-end') {
-          return { ...node, position: { x: node.position.x + shiftAmount, y: node.position.y } };
-        }
-        return node;
-      }).concat(newUserSection);
+      return recalculateSectionPositions([...nds, newUserSection]);
     });
 
     setNewSectionName('');
@@ -375,8 +419,144 @@ const FlowchartEditor = () => {
     return nodes.find((n) => n.id === menu.id);
   }, [menu, nodes]);
 
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow');
+
+      // check if the dropped element is valid
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      // Find if we dropped on a section
+      const section = nodes.find(n => {
+        if (n.type !== 'sectionNode') return false;
+        const width = n.style?.width as number || SECTION_WIDTH;
+        const height = n.style?.height as number || SECTION_HEIGHT;
+        
+        return (
+          position.x >= n.position.x &&
+          position.x <= n.position.x + width &&
+          position.y >= n.position.y &&
+          position.y <= n.position.y + height
+        );
+      });
+
+      if (section) {
+        // Calculate relative position within the section
+        const relativePosition = {
+          x: position.x - section.position.x,
+          y: position.y - section.position.y,
+        };
+        
+        if ((type === 'preparation' || type === 'hexagon') && section.data.label !== 'Start' && section.data.label !== 'End') {
+          return;
+        }
+
+        if (type === 'hexagonLime' && section.data.label !== 'End') {
+          return;
+        }
+        
+        addNewNode(section.id, type as NodeShape, relativePosition);
+      }
+    },
+    [screenToFlowPosition, nodes, addNewNode]
+  );
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
-    <div className="w-full h-[calc(100vh-140px)] flex flex-col relative" onClick={closeMenu}>
+    <div className="w-full h-[calc(100vh-140px)] flex flex-row gap-4 relative" onClick={closeMenu}>
+      {/* Sidebar with shapes */}
+      <Card className="w-20 flex flex-col items-center py-4 gap-6 shadow-lg border-slate-200">
+        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground vertical-rl rotate-180">Shapes</h3>
+        <Separator className="w-10" />
+        <div className="flex flex-col gap-4">
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#deeaee] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'rectangle')}
+            title="Drag Rectangle Step"
+          >
+            <RectangleHorizontal className="h-6 w-6 text-black" />
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#dac292] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'rectangleTan')}
+            title="Drag Tan Rectangle Step"
+          >
+            <RectangleHorizontal className="h-6 w-6 text-black" />
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-slate-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-black hover:bg-slate-50 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'diamond')}
+            title="Drag Diamond Step"
+          >
+            <Diamond className="h-6 w-6 text-black" />
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-pink-50 border-2 border-pink-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'hexagon')}
+            title="Drag Start/End Hexagon (Start & End Sections)"
+          >
+            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[url(#violetGradient)] transition-colors" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="violetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style={{ stopColor: '#5b21b6' }} />
+                  <stop offset="100%" style={{ stopColor: '#ffffff' }} />
+                </linearGradient>
+              </defs>
+              <path d="M1.2 8 L22.8 8 L24 12 L22.8 16 L1.2 16 L0 12 Z" strokeWidth="2" />
+            </svg>
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-lime-50 border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'preparation')}
+            title="Drag Preparation Step (Start & End Sections)"
+          >
+            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+              {/* Back Layer - Hexagon */}
+              <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
+              {/* Front Layer - Rectangle */}
+              <rect x="2" y="2" width="18" height="12" strokeWidth="2" />
+            </svg>
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl cursor-grab active:cursor-grabbing hover:text-lime-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'hexagonLime')}
+            title="Drag End Hexagon (End Section Only)"
+          >
+            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8 L20 8 L22 12 L20 16 L4 16 L2 12 Z" strokeWidth="2" />
+            </svg>
+          </div>
+        </div>
+        <div className="mt-auto flex flex-col items-center gap-2">
+           <Separator className="w-10" />
+           <p className="text-[8px] font-bold text-slate-400 text-center px-1">DRAG & DROP</p>
+        </div>
+      </Card>
+
       <div className="flex-1 bg-slate-50 rounded-3xl shadow-xl overflow-hidden border border-slate-200 relative">
         <FlowchartCanvas 
           nodes={nodes}
@@ -393,6 +573,8 @@ const FlowchartEditor = () => {
           onToggleMove={toggleMove}
           onToggleMiniMap={toggleMiniMap}
           onAddSection={() => setIsAddSectionOpen(true)}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
         />
       </div>
 
@@ -438,36 +620,73 @@ const FlowchartEditor = () => {
           <div className="grid grid-cols-2 gap-4 py-6">
             <Button 
               variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 hover:border-primary hover:bg-primary/5 transition-all"
+              className="h-24 flex flex-col gap-2 border-2 border-[#c9d9df] bg-[#deeaee] hover:border-blue-500 hover:bg-[#deeaee]/80 transition-all group"
               onClick={() => activeParentId && addNewNode(activeParentId, 'rectangle')}
             >
-              <RectangleHorizontal className="h-8 w-8 text-primary" />
-              <span className="font-bold uppercase tracking-tight text-[10px]">Rectangle</span>
+              <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+              <span className="font-bold uppercase tracking-tight text-[10px] text-black">Process Step</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 hover:border-primary hover:bg-primary/5 transition-all"
-              onClick={() => activeParentId && addNewNode(activeParentId, 'square')}
+              className="h-24 flex flex-col gap-2 border-2 border-[#b8a176] bg-[#dac292] hover:border-blue-500 hover:bg-[#dac292]/80 transition-all group"
+              onClick={() => activeParentId && addNewNode(activeParentId, 'rectangleTan')}
             >
-              <Square className="h-8 w-8 text-primary" />
-              <span className="font-bold uppercase tracking-tight text-[10px]">Square</span>
+              <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+              <span className="font-bold uppercase tracking-tight text-[10px] text-black">Detail Step</span>
             </Button>
             <Button 
               variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 hover:border-primary hover:bg-primary/5 transition-all"
-              onClick={() => activeParentId && addNewNode(activeParentId, 'circle')}
-            >
-              <Circle className="h-8 w-8 text-primary" />
-              <span className="font-bold uppercase tracking-tight text-[10px]">Circle</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 hover:border-primary hover:bg-primary/5 transition-all"
+              className="h-24 flex flex-col gap-2 border-2 border-slate-200 hover:border-black hover:bg-slate-50 transition-all group"
               onClick={() => activeParentId && addNewNode(activeParentId, 'diamond')}
             >
-              <Diamond className="h-8 w-8 text-primary" />
-              <span className="font-bold uppercase tracking-tight text-[10px]">Diamond</span>
+              <Diamond className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+              <span className="font-bold uppercase tracking-tight text-[10px] text-black">Decision</span>
             </Button>
+            
+            {(activeParentId === 'section-start' || activeParentId === 'section-end') && (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-pink-100 bg-pink-50 hover:border-pink-500 hover:bg-pink-100 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'hexagon')}
+                >
+                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[url(#violetGradient-dialog)] transition-colors" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="violetGradient-dialog" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{ stopColor: '#5b21b6' }} />
+                        <stop offset="100%" style={{ stopColor: '#ffffff' }} />
+                      </linearGradient>
+                    </defs>
+                    <path d="M1.2 8 L22.8 8 L24 12 L22.8 16 L1.2 16 L0 12 Z" strokeWidth="2" />
+                  </svg>
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Hexagon</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-lime-50 hover:border-lime-500 hover:bg-lime-100 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'preparation')}
+                >
+                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
+                    <rect x="2" y="2" width="18" height="12" strokeWidth="2" />
+                  </svg>
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Preparation</span>
+                </Button>
+              </>
+            )}
+
+            {activeParentId === 'section-end' && (
+              <Button 
+                variant="outline" 
+                className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-white hover:border-lime-500 hover:bg-lime-50 transition-all group"
+                onClick={() => activeParentId && addNewNode(activeParentId, 'hexagonLime')}
+              >
+                <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 8 L20 8 L22 12 L20 16 L4 16 L2 12 Z" strokeWidth="2" />
+                </svg>
+                <span className="font-bold uppercase tracking-tight text-[10px] text-black">End Hexagon</span>
+              </Button>
+            )}
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsShapeSelectionOpen(false)}>Cancel</Button>
@@ -477,12 +696,12 @@ const FlowchartEditor = () => {
 
       {menu && menuNode && (
         <Card 
-          className="fixed z-[100] w-64 shadow-2xl p-2 border-primary/20 bg-white/95 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-100"
+          className="fixed z-[100] w-64 shadow-2xl p-2 border-black/20 bg-white/95 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-100"
           style={{ top: menu.top, left: menu.left }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-3 py-2">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Handle Configuration</h3>
+            <h3 className="text-xs font-bold uppercase tracking-widest text-black/40 mb-3">Handle Configuration</h3>
             
             <div className="space-y-4">
               {menuNode.data.shape === 'diamond' ? (
@@ -491,11 +710,11 @@ const FlowchartEditor = () => {
                     {/* Top Handle */}
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Top Point</span>
+                        <span className="text-[10px] font-bold text-black uppercase opacity-60">Top Point</span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="h-6 w-6 hover:bg-black/5"
                           onClick={() => toggleHandleVisibility(menu.id, 'top')}
                         >
                           {menuNode.data.showTop === false ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
@@ -503,7 +722,7 @@ const FlowchartEditor = () => {
                       </div>
                       <Input 
                         placeholder="Label (e.g. YES)" 
-                        className="h-7 text-[10px] uppercase font-bold"
+                        className="h-7 text-[10px] uppercase font-bold border-black/20 focus-visible:ring-black/20"
                         value={menuNode.data.topLabel || ''}
                         onChange={(e) => updateHandleLabel(menu.id, 'top', e.target.value)}
                       />
@@ -639,6 +858,14 @@ const FlowchartEditor = () => {
         </Card>
       )}
     </div>
+  );
+};
+
+const FlowchartEditor = () => {
+  return (
+    <ReactFlowProvider>
+      <FlowchartEditorContent />
+    </ReactFlowProvider>
   );
 };
 
