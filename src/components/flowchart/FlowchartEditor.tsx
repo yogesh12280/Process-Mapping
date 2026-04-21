@@ -524,7 +524,7 @@ const FlowchartEditorContent = () => {
                   <stop offset="100%" style={{ stopColor: '#ffffff' }} />
                 </linearGradient>
               </defs>
-              <path d="M1.2 8 L22.8 8 L24 12 L22.8 16 L1.2 16 L0 12 Z" strokeWidth="2" />
+              <path d="M4 8 L20 8 L23 12 L20 16 L4 16 L1 12 Z" strokeWidth="2" />
             </svg>
           </div>
           <div 
@@ -541,7 +541,7 @@ const FlowchartEditorContent = () => {
             </svg>
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl cursor-grab active:cursor-grabbing hover:text-lime-500 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-lime-50 border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'hexagonLime')}
             title="Drag End Hexagon (End Section Only)"
