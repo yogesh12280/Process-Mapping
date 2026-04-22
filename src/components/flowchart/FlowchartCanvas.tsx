@@ -41,6 +41,7 @@ interface FlowchartCanvasProps {
   onToggleMove: () => void;
   onToggleMiniMap: () => void;
   onAddSection: () => void;
+  onNodeDoubleClick?: (event: React.MouseEvent, node: Node) => void;
   onDrop?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
 }
@@ -60,6 +61,7 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
   onToggleMove,
   onToggleMiniMap,
   onAddSection,
+  onNodeDoubleClick,
   onDrop,
   onDragOver
 }) => {
@@ -87,6 +89,7 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeContextMenu={onNodeContextMenu}
+        onNodeDoubleClick={onNodeDoubleClick}
         onPaneClick={onPaneClick}
         onDrop={onDrop}
         onDragOver={onDragOver}

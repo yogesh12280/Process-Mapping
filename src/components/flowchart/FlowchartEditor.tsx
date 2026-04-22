@@ -27,7 +27,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box } from 'lucide-react';
+import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box, Edit3 } from 'lucide-react';
 import { NodeShape } from './CustomNode';
 
 const SECTION_WIDTH = 240;
@@ -79,11 +79,14 @@ const FlowchartEditorContent = () => {
   const [showMiniMap, setShowMiniMap] = useState(false); 
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
+  const [isEditNodeOpen, setIsEditNodeOpen] = useState(false);
+  const [nodeToEdit, setNodeToEdit] = useState<Node | null>(null);
+  const [editedLabel, setEditedLabel] = useState('');
   const [newSectionName, setNewSectionName] = useState('');
   const [isShapeSelectionOpen, setIsShapeSelectionOpen] = useState(false);
   const [activeParentId, setActiveParentId] = useState<string | null>(null);
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
 
   const addNewNode = useCallback((parentId: string, shape: NodeShape = 'rectangle', position: { x: number, y: number } = { x: 45, y: 105 }) => {
     const id = `node-${Date.now()}`;
@@ -92,6 +95,7 @@ const FlowchartEditorContent = () => {
       type: 'workflowNode',
       data: { 
         label: 'New Step', 
+        description: 'This is a core process step in the workflow.',
         type: 'step', 
         shape,
         isLocked: false, 
@@ -157,7 +161,7 @@ const FlowchartEditorContent = () => {
     {
       id: 'node-start',
       type: 'workflowNode',
-      data: { label: 'Start Process', type: 'start', shape: 'hexagon', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Start Process', description: 'Initiation point for the complete business workflow.', type: 'start', shape: 'hexagon', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -168,7 +172,7 @@ const FlowchartEditorContent = () => {
     {
       id: 'node-review',
       type: 'workflowNode',
-      data: { label: 'Initial Review', type: 'user', shape: 'rectangle', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Initial Review', description: 'Reviewing the submitted documentation for completeness.', type: 'user', shape: 'rectangle', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -179,7 +183,7 @@ const FlowchartEditorContent = () => {
     {
       id: 'node-detail-check',
       type: 'workflowNode',
-      data: { label: 'Detail Verification', type: 'user', shape: 'rectangleTan', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Detail Verification', description: 'Cross-referencing details with the central registry.', type: 'user', shape: 'rectangleTan', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 195 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -190,7 +194,7 @@ const FlowchartEditorContent = () => {
     {
       id: 'node-decision',
       type: 'workflowNode',
-      data: { label: 'Approval Required?', type: 'user', shape: 'diamond', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true, showTop: true, showBottom: true, showLeft: true, showRight: true },
+      data: { label: 'Approval Required?', description: 'Outcome determination based on standard criteria.', type: 'user', shape: 'diamond', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true, showTop: true, showBottom: true, showLeft: true, showRight: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -201,7 +205,7 @@ const FlowchartEditorContent = () => {
     {
       id: 'node-end',
       type: 'workflowNode',
-      data: { label: 'Process Complete', type: 'end', shape: 'hexagonLime', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
+      data: { label: 'Process Complete', description: 'The finalization state where all outputs are archived.', type: 'end', shape: 'hexagonLime', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
       position: { x: 45, y: 75 },
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
@@ -475,6 +479,37 @@ const FlowchartEditorContent = () => {
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
+  const onNodeDoubleClick = useCallback((_: React.MouseEvent, node: Node) => {
+    // Only open edit for workflow nodes, not sections
+    if (node.type === 'workflowNode') {
+      setNodeToEdit(node);
+      setEditedLabel(node.data.label || '');
+      setIsEditNodeOpen(true);
+    }
+  }, []);
+
+  const handleUpdateNodeLabel = () => {
+    if (!nodeToEdit || !editedLabel.trim()) return;
+
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeToEdit.id) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              label: editedLabel,
+            },
+          };
+        }
+        return node;
+      })
+    );
+
+    setIsEditNodeOpen(false);
+    setNodeToEdit(null);
+  };
+
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
@@ -484,12 +519,13 @@ const FlowchartEditorContent = () => {
     <div className="w-full h-[calc(100vh-140px)] flex flex-row gap-4 relative" onClick={closeMenu}>
       <div className="flex-1 bg-slate-50 rounded-3xl shadow-xl overflow-hidden border border-slate-200 relative">
         <FlowchartCanvas 
-          nodes={nodes}
-          edges={edges}
+          nodes={nodes} 
+          edges={edges} 
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeContextMenu={onNodeContextMenu}
+          onNodeDoubleClick={onNodeDoubleClick}
           onPaneClick={closeMenu}
           isLocked={isLocked}
           isMoveEnabled={isMoveEnabled}
@@ -502,6 +538,52 @@ const FlowchartEditorContent = () => {
           onDragOver={onDragOver}
         />
       </div>
+
+      {/* Edit Node Dialog */}
+      <Dialog open={isEditNodeOpen} onOpenChange={setIsEditNodeOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-primary" />
+              Edit Workflow Step
+            </DialogTitle>
+            <DialogDescription>
+              Update the title of this step or view its details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Step Title
+              </Label>
+              <Input
+                id="title"
+                value={editedLabel}
+                onChange={(e) => setEditedLabel(e.target.value)}
+                className="border-slate-200 focus-visible:ring-primary"
+                placeholder="Enter step title..."
+                autoFocus
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Description
+              </Label>
+              <div className="p-3 bg-slate-50 border border-slate-100 rounded-lg text-sm text-slate-600 leading-relaxed">
+                {nodeToEdit?.data.description || 'No description available for this step.'}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditNodeOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateNodeLabel}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Sidebar with shapes moved to the right */}
       <Card className="w-20 flex flex-col items-center py-4 gap-6 shadow-lg border-slate-200">
