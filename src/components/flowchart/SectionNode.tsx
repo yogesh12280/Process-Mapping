@@ -2,8 +2,7 @@
 
 import React, { memo } from 'react';
 import { NodeProps, NodeResizer } from '@xyflow/react';
-import { Plus, Play, CheckCircle2, UserCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Play, CheckCircle2, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface SectionNodeData {
@@ -42,24 +41,6 @@ const SectionNode = ({ id, data, selected }: NodeProps) => {
               {label}
             </span>
           </div>
-          
-          {!isLocked && onAddChild && (
-            <div className="absolute right-4">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-6 w-6 rounded-full bg-white shadow-sm hover:bg-black hover:text-white transition-all border-black cursor-pointer pointer-events-auto"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onAddChild(id);
-                }}
-                title={`Add item to ${label}`}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
         </div>
         <div className="w-full h-full" />
       </div>

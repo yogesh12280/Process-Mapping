@@ -27,7 +27,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon } from 'lucide-react';
+import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box } from 'lucide-react';
 import { NodeShape } from './CustomNode';
 
 const SECTION_WIDTH = 240;
@@ -482,9 +482,33 @@ const FlowchartEditorContent = () => {
 
   return (
     <div className="w-full h-[calc(100vh-140px)] flex flex-row gap-4 relative" onClick={closeMenu}>
-      {/* Sidebar with shapes */}
+      <div className="flex-1 bg-slate-50 rounded-3xl shadow-xl overflow-hidden border border-slate-200 relative">
+        <FlowchartCanvas 
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeContextMenu={onNodeContextMenu}
+          onPaneClick={closeMenu}
+          isLocked={isLocked}
+          isMoveEnabled={isMoveEnabled}
+          showMiniMap={showMiniMap}
+          onToggleLock={toggleLock}
+          onToggleMove={toggleMove}
+          onToggleMiniMap={toggleMiniMap}
+          onAddSection={() => setIsAddSectionOpen(true)}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+        />
+      </div>
+
+      {/* Sidebar with shapes moved to the right */}
       <Card className="w-20 flex flex-col items-center py-4 gap-6 shadow-lg border-slate-200">
-        <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground vertical-rl rotate-180">Shapes</h3>
+        <div className="flex flex-col items-center gap-1">
+          <Box className="h-5 w-5 text-primary" />
+          <h3 className="text-[9px] font-black uppercase tracking-widest text-primary vertical-rl">SHAPES</h3>
+        </div>
         <Separator className="w-10" />
         <div className="flex flex-col gap-4">
           <div 
@@ -556,27 +580,6 @@ const FlowchartEditorContent = () => {
            <p className="text-[8px] font-bold text-slate-400 text-center px-1">DRAG & DROP</p>
         </div>
       </Card>
-
-      <div className="flex-1 bg-slate-50 rounded-3xl shadow-xl overflow-hidden border border-slate-200 relative">
-        <FlowchartCanvas 
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeContextMenu={onNodeContextMenu}
-          onPaneClick={closeMenu}
-          isLocked={isLocked}
-          isMoveEnabled={isMoveEnabled}
-          showMiniMap={showMiniMap}
-          onToggleLock={toggleLock}
-          onToggleMove={toggleMove}
-          onToggleMiniMap={toggleMiniMap}
-          onAddSection={() => setIsAddSectionOpen(true)}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-        />
-      </div>
 
       <Dialog open={isAddSectionOpen} onOpenChange={setIsAddSectionOpen}>
         <DialogContent className="sm:max-w-[425px]">

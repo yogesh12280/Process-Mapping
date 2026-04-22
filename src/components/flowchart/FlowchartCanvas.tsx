@@ -13,11 +13,12 @@ import {
   OnEdgesChange,
   ControlButton,
   ConnectionMode,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import CustomNode from './CustomNode';
 import SectionNode from './SectionNode';
-import { Lock, Unlock, Move, Map as MapIcon, UserPlus } from 'lucide-react';
+import { Lock, Unlock, Move, Map as MapIcon, UserPlus, Maximize } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const nodeTypes = {
@@ -62,12 +63,18 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
   onDrop,
   onDragOver
 }) => {
+  const { fitView } = useReactFlow();
+
   const defaultEdgeOptions = useMemo(() => ({
     animated: true,
     type: 'smoothstep',
     style: { strokeWidth: 3, stroke: 'hsl(var(--primary))' },
     pathOptions: { borderRadius: 0 },
   }), []);
+
+  const handleFitView = () => {
+    fitView({ padding: 0.2, duration: 800 });
+  };
 
   const canMoveCanvas = !isLocked && isMoveEnabled;
 
@@ -87,6 +94,7 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
         defaultEdgeOptions={defaultEdgeOptions}
         connectionMode={ConnectionMode.Strict}
         fitView
+        fitViewOptions={{ padding: 0.2 }}
         snapToGrid
         snapGrid={[15, 15]}
         deleteKeyCode={isLocked ? [] : ['Backspace', 'Delete']}
@@ -141,6 +149,13 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
             className={cn("transition-colors", showMiniMap ? 'bg-slate-200' : 'bg-white')}
           >
             <MapIcon className="w-4 h-4" />
+          </ControlButton>
+          <ControlButton 
+            onClick={handleFitView} 
+            title="Fit View"
+            className="bg-white hover:bg-slate-50 text-primary rounded-b-md"
+          >
+            <Maximize className="w-4 h-4" />
           </ControlButton>
         </Controls>
         {showMiniMap && (
