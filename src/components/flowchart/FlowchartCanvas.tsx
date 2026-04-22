@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -78,6 +78,13 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
     fitView({ padding: 0.2, duration: 800 });
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [fitView]);
+
   const canMoveCanvas = !isLocked && isMoveEnabled;
 
   return (
@@ -118,7 +125,7 @@ const FlowchartCanvas: React.FC<FlowchartCanvasProps> = ({
         preventScrolling={true}
       >
         <Background color="#cbd5e1" gap={30} variant="dots" />
-        <Controls showInteractive={false} position="bottom-left">
+        <Controls showInteractive={false} showFitView={false} position="bottom-left">
           <ControlButton 
             onClick={onAddSection} 
             title="Add New User Section"
