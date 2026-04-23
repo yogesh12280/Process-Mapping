@@ -51,7 +51,7 @@ const recalculateSectionPositions = (nds: Node[]) => {
   const endSection = sections.find((s) => s.data.sectionRole === 'end');
   const userSections = sections
     .filter((s) => s.data.sectionRole !== 'start' && s.data.sectionRole !== 'end')
-    .sort((a, b) => a.position.x - b.position.x);
+    .sort((a, b) => (a.position?.x || 0) - (b.position?.x || 0));
 
   const sortedSections = [
     ...(startSection ? [startSection] : []),
@@ -85,8 +85,36 @@ const FlowchartEditorContent = () => {
   const [newSectionName, setNewSectionName] = useState('');
   const [isShapeSelectionOpen, setIsShapeSelectionOpen] = useState(false);
   const [activeParentId, setActiveParentId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { screenToFlowPosition, fitView } = useReactFlow();
+
+  const [nodes, setNodes, onNodesChangeState] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
+  const fetchWorkflow = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/workflow');
+      if (!response.ok) throw new Error('Failed to fetch workflow');
+      const data = await response.json();
+      setNodes(data.nodes);
+      setEdges(data.edges);
+      
+      // Short delay to ensure nodes are rendered before fitting view
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 800 });
+      }, 100);
+    } catch (error) {
+      console.error('Error fetching workflow:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setNodes, setEdges, fitView]);
+
+  useEffect(() => {
+    fetchWorkflow();
+  }, [fetchWorkflow]);
 
   const addNewNode = useCallback((parentId: string, shape: NodeShape = 'rectangle', position: { x: number, y: number } = { x: 45, y: 105 }) => {
     const id = `node-${Date.now()}`;
@@ -114,128 +142,13 @@ const FlowchartEditorContent = () => {
     setNodes((nds) => [...nds, newNode]);
     setIsShapeSelectionOpen(false);
     setActiveParentId(null);
-  }, [isLocked, isMoveEnabled]);
+  }, [isLocked, isMoveEnabled, setNodes]);
 
   const openShapeSelection = useCallback((parentId: string) => {
     setActiveParentId(parentId);
     setIsShapeSelectionOpen(true);
   }, []);
 
-  const INITIAL_NODES: Node[] = useMemo(() => {
-    const timestamp = Date.now();
-    const startId = `section-start-${timestamp}`;
-    const user1Id = `section-user1-${timestamp}`;
-    const user2Id = `section-user2-${timestamp}`;
-    const endSectionId = `section-end-${timestamp}`;
-
-    const sections: Node[] = [
-      {
-        id: startId,
-        type: 'sectionNode',
-        data: { label: 'Start', sectionRole: 'start' },
-        position: { x: 0, y: 0 },
-        style: { width: SECTION_WIDTH, height: SECTION_HEIGHT },
-        selectable: true,
-        draggable: false,
-      },
-      {
-        id: user1Id,
-        type: 'sectionNode',
-        data: { label: 'User 1', sectionRole: 'user' },
-        position: { x: SECTION_WIDTH + SECTION_GAP, y: 0 },
-        style: { width: SECTION_WIDTH + 40, height: SECTION_HEIGHT },
-        selectable: true,
-        draggable: false,
-      },
-      {
-        id: user2Id,
-        type: 'sectionNode',
-        data: { label: 'User 2', sectionRole: 'user' },
-        position: { x: (SECTION_WIDTH + SECTION_GAP) * 2 + 40, y: 0 },
-        style: { width: SECTION_WIDTH + 40, height: SECTION_HEIGHT },
-        selectable: true,
-        draggable: false,
-      },
-      {
-        id: endSectionId,
-        type: 'sectionNode',
-        data: { label: 'End', sectionRole: 'end' },
-        position: { x: (SECTION_WIDTH + SECTION_GAP) * 3 + 80, y: 0 },
-        style: { width: SECTION_WIDTH, height: SECTION_HEIGHT },
-        selectable: true,
-        draggable: false,
-      },
-    ];
-
-    const contentNodes: Node[] = [
-      {
-        id: 'node-start',
-        type: 'workflowNode',
-        data: { label: 'Start Process', description: 'Initiation point for the complete business workflow.', type: 'start', shape: 'hexagon', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
-        position: { x: 45, y: 75 },
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-        parentId: startId,
-        extent: 'parent',
-        draggable: false,
-      },
-      {
-        id: 'node-review',
-        type: 'workflowNode',
-        data: { label: 'Initial Review', description: 'Reviewing the submitted documentation for completeness.', type: 'user', shape: 'rectangle', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
-        position: { x: 45, y: 75 },
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-        parentId: user1Id,
-        extent: 'parent',
-        draggable: false,
-      },
-      {
-        id: 'node-detail-check',
-        type: 'workflowNode',
-        data: { label: 'Detail Verification', description: 'Cross-referencing details with the central registry.', type: 'user', shape: 'rectangleTan', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
-        position: { x: 45, y: 195 },
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-        parentId: user1Id,
-        extent: 'parent',
-        draggable: false,
-      },
-      {
-        id: 'node-decision',
-        type: 'workflowNode',
-        data: { label: 'Approval Required?', description: 'Outcome determination based on standard criteria.', type: 'user', shape: 'diamond', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true, showTop: true, showBottom: true, showLeft: true, showRight: true },
-        position: { x: 45, y: 75 },
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-        parentId: user2Id,
-        extent: 'parent',
-        draggable: false,
-      },
-      {
-        id: 'node-end',
-        type: 'workflowNode',
-        data: { label: 'Process Complete', description: 'The finalization state where all outputs are archived.', type: 'end', shape: 'hexagonLime', targetPos: 'left', sourcePos: 'right', showTarget: true, showSource: true },
-        position: { x: 45, y: 75 },
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-        parentId: endSectionId,
-        extent: 'parent',
-        draggable: false,
-      },
-    ];
-
-    return [...sections, ...contentNodes];
-  }, []);
-
-  const INITIAL_EDGES: Edge[] = [
-    { id: 'e-start-review', source: 'node-start', sourceHandle: 'source', target: 'node-review', targetHandle: 'target', animated: true },
-    { id: 'e-review-detail', source: 'node-review', sourceHandle: 'source', target: 'node-detail-check', targetHandle: 'target' },
-    { id: 'e-detail-decision', source: 'node-detail-check', sourceHandle: 'source', target: 'node-decision', targetHandle: 'top', animated: true },
-    { id: 'e-decision-end', source: 'node-decision', sourceHandle: 'right', target: 'node-end', targetHandle: 'target', animated: true },
-  ];
-
-  const [nodes, setNodes] = useNodesState(INITIAL_NODES);
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       setNodes((nds) => {
@@ -260,7 +173,6 @@ const FlowchartEditorContent = () => {
     },
     [setNodes]
   );
-  const [edges, setEdges, onEdgesChange] = useEdgesState(INITIAL_EDGES);
 
   useEffect(() => {
     setNodes((nds) => 
@@ -412,7 +324,7 @@ const FlowchartEditorContent = () => {
       // The recalculateSectionPositions will fix the exact X
       const maxX = nds
         .filter(n => n.type === 'sectionNode' && n.data.sectionRole !== 'end')
-        .reduce((max, n) => Math.max(max, n.position.x + ((n.style?.width as number) || SECTION_WIDTH)), 0);
+        .reduce((max, n) => Math.max(max, (n.position?.x || 0) + ((n.style?.width as number) || SECTION_WIDTH)), 0);
 
       const newUserSection: Node = {
         id: `section-user-${Date.now()}`,
@@ -536,6 +448,14 @@ const FlowchartEditorContent = () => {
   return (
     <div className="w-full h-[calc(100vh-140px)] flex flex-row gap-4 relative" onClick={closeMenu}>
       <div className="flex-1 bg-slate-50 rounded-3xl shadow-xl overflow-hidden border border-slate-200 relative">
+        {isLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm font-bold text-slate-600 animate-pulse uppercase tracking-widest">Loading workflow...</p>
+            </div>
+          </div>
+        )}
         <FlowchartCanvas 
           nodes={nodes} 
           edges={edges} 
