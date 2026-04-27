@@ -27,7 +27,8 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box, Edit3 } from 'lucide-react';
+import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box, Edit3, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { NodeShape } from './CustomNode';
 
 const SECTION_WIDTH = 240;
@@ -241,6 +242,51 @@ const FlowchartEditorContent = () => {
 
   const closeMenu = useCallback(() => setMenu(null), []);
 
+  const handleSave = useCallback(async () => {
+    const workflowData = {
+      nodes: nodes.map(node => ({
+        id: node.id,
+        type: node.type,
+        data: node.data,
+        position: node.position,
+        width: node.width || (node.style?.width as number),
+        height: node.height || (node.style?.height as number),
+        parentId: node.parentId,
+        extent: node.extent,
+        draggable: node.draggable,
+        style: node.style,
+      })),
+      edges: edges.map(edge => ({
+        id: edge.id,
+        source: edge.source,
+        sourceHandle: edge.sourceHandle,
+        target: edge.target,
+        targetHandle: edge.targetHandle,
+        animated: edge.animated,
+        type: edge.type,
+      })),
+    };
+
+    console.log('Saved Workflow JSON:', JSON.stringify(workflowData, null, 2));
+
+    const promise = fetch('/api/workflow', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(workflowData),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error('Failed to save workflow');
+      return res.json();
+    });
+
+    toast.promise(promise, {
+      loading: 'Saving workflow...',
+      success: 'Workflow saved successfully!',
+      error: 'Failed to save workflow.',
+    });
+  }, [nodes, edges]);
+
   const updateNodeHandle = useCallback((id: string, type: 'target' | 'source', pos: 'left' | 'top' | 'right' | 'bottom') => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -314,6 +360,27 @@ const FlowchartEditorContent = () => {
   const toggleLock = useCallback(() => setIsLocked((prev) => !prev), []);
   const toggleMove = useCallback(() => setIsMoveEnabled((prev) => !prev), []);
   const toggleMiniMap = useCallback(() => setShowMiniMap((prev) => !prev), []);
+
+  useEffect(() => {
+    const handleSaveTrigger = () => {
+      handleSave();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+
+    window.addEventListener('workflow:save', handleSaveTrigger);
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('workflow:save', handleSaveTrigger);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSave]);
 
   const handleAddSection = () => {
     if (!newSectionName.trim()) return;
@@ -594,6 +661,19 @@ const FlowchartEditorContent = () => {
               <path d="M4 8 L20 8 L22 12 L20 16 L4 16 L2 12 Z" strokeWidth="2" />
             </svg>
           </div>
+          
+          <Separator className="w-12 my-2" />
+          
+          <Button
+            variant="default"
+            size="icon"
+            className="w-12 h-12 rounded-xl shadow-lg bg-primary hover:bg-primary/90 transition-all flex flex-col gap-1 h-auto py-2"
+            onClick={handleSave}
+            title="Save Workflow"
+          >
+            <Save className="h-5 w-5 text-white" />
+            <span className="text-[8px] font-bold uppercase tracking-tighter">Save</span>
+          </Button>
         </div>
         <div className="mt-auto flex flex-col items-center gap-2">
            <Separator className="w-10" />

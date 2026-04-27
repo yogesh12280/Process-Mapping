@@ -16,7 +16,12 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="hidden sm:flex items-center gap-2"
+            onClick={() => window.dispatchEvent(new CustomEvent('workflow:save'))}
+          >
             <Save className="w-4 h-4" />
             <span>Save</span>
           </Button>

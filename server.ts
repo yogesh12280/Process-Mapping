@@ -10,6 +10,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Middleware to parse JSON bodies
+  app.use(express.json());
+
   // Constants consistent with client
   const SECTION_WIDTH = 240;
   const SECTION_HEIGHT = 450;
@@ -17,8 +20,15 @@ async function startServer() {
   const NODE_WIDTH = 150;
   const NODE_HEIGHT = 60;
 
+  // In-memory storage for workflow
+  let currentWorkflow: any = null;
+
   // API Route for initial workflow data
   app.get("/api/workflow", (req, res) => {
+    if (currentWorkflow) {
+      return res.json(currentWorkflow);
+    }
+    
     const timestamp = Date.now();
     const startId = `section-start-${timestamp}`;
     const user1Id = `section-user1-${timestamp}`;
@@ -127,6 +137,12 @@ async function startServer() {
     ];
 
     res.json({ nodes, edges });
+  });
+
+  app.post("/api/workflow", (req, res) => {
+    currentWorkflow = req.body;
+    console.log("Workflow saved successfully");
+    res.json({ status: "success", message: "Workflow saved" });
   });
 
   // Vite middleware for development

@@ -6,7 +6,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import FlowchartEditor from '@/components/flowchart/FlowchartEditor';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'sonner';
 
 export default function App() {
   return (
@@ -29,7 +29,7 @@ export default function App() {
           </div>
         </div>
       </footer>
-      <Toaster />
+      <Toaster richColors position="top-center" />
     </div>
   );
 }
