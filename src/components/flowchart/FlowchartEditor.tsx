@@ -134,8 +134,8 @@ const FlowchartEditorContent = () => {
         showSource: true
       },
       position, 
-      width: (shape === 'rectangle' || shape === 'rectangleTan' || shape === 'hexagon' || shape === 'hexagonLime') ? NODE_WIDTH : (shape === 'preparation' ? 115 : 100),
-      height: (shape === 'rectangle' || shape === 'rectangleTan' || shape === 'hexagon' || shape === 'hexagonLime') ? NODE_HEIGHT : (shape === 'preparation' ? 80 : 100),
+    width: ['rectangle', 'rectangleTan', 'rectangleRed', 'rectangleGrey', 'hexagon', 'hexagonLime'].includes(shape) ? NODE_WIDTH : (shape === 'preparation' ? 115 : 100),
+    height: ['rectangle', 'rectangleTan', 'rectangleRed', 'rectangleGrey', 'hexagon', 'hexagonLime'].includes(shape) ? NODE_HEIGHT : (shape === 'preparation' ? 80 : 100),
       parentId: parentId,
       extent: 'parent',
       draggable: !isLocked && isMoveEnabled,
@@ -452,11 +452,18 @@ const FlowchartEditorContent = () => {
           y: position.y - section.position.y,
         };
         
-        if ((type === 'preparation' || type === 'hexagon') && section.data.label !== 'Start' && section.data.label !== 'End') {
+        const isRectangle = ['rectangle', 'rectangleTan', 'rectangleRed', 'rectangleGrey'].includes(type);
+        const sectionRole = section.data.sectionRole;
+
+        if (isRectangle && sectionRole !== 'user') {
+          return;
+        }
+        
+        if ((type === 'preparation' || type === 'hexagon') && sectionRole !== 'start' && sectionRole !== 'end') {
           return;
         }
 
-        if (type === 'hexagonLime' && section.data.label !== 'End') {
+        if (type === 'hexagonLime' && sectionRole !== 'end') {
           return;
         }
         
@@ -599,7 +606,7 @@ const FlowchartEditorContent = () => {
         <Separator className="w-10" />
         <div className="flex flex-col gap-4">
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#deeaee] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'rectangle')}
             title="Drag Rectangle Step"
@@ -607,7 +614,7 @@ const FlowchartEditorContent = () => {
             <RectangleHorizontal className="h-6 w-6 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#dac292] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CEC4DA] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'rectangleTan')}
             title="Drag Tan Rectangle Step"
@@ -615,7 +622,23 @@ const FlowchartEditorContent = () => {
             <RectangleHorizontal className="h-6 w-6 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-slate-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-black hover:bg-slate-50 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#EBC8C7] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'rectangleRed')}
+            title="Drag Red Rectangle Step"
+          >
+            <RectangleHorizontal className="h-6 w-6 text-black" />
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#DCDCDC] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            draggable
+            onDragStart={(e) => onDragStart(e, 'rectangleGrey')}
+            title="Drag Grey Rectangle Step"
+          >
+            <RectangleHorizontal className="h-6 w-6 text-black" />
+          </div>
+          <div 
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FFFFCC] border-2 border-slate-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'diamond')}
             title="Drag Diamond Step"
@@ -623,28 +646,22 @@ const FlowchartEditorContent = () => {
             <Diamond className="h-6 w-6 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-pink-50 border-2 border-pink-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FCB3FC] border-2 border-pink-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'hexagon')}
             title="Drag Start/End Hexagon (Start & End Sections)"
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[url(#violetGradient)] transition-colors" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="violetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: '#5b21b6' }} />
-                  <stop offset="100%" style={{ stopColor: '#ffffff' }} />
-                </linearGradient>
-              </defs>
+            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 8 L20 8 L23 12 L20 16 L4 16 L1 12 Z" strokeWidth="2" />
             </svg>
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-lime-50 border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'preparation')}
             title="Drag Preparation Step (Start & End Sections)"
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               {/* Back Layer - Hexagon */}
               <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
               {/* Front Layer - Rectangle */}
@@ -652,12 +669,12 @@ const FlowchartEditorContent = () => {
             </svg>
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-lime-50 border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'hexagonLime')}
             title="Drag End Hexagon (End Section Only)"
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 8 L20 8 L22 12 L20 16 L4 16 L2 12 Z" strokeWidth="2" />
             </svg>
           </div>
@@ -721,25 +738,45 @@ const FlowchartEditorContent = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-6">
+            {activeParentRole === 'user' && (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-[#c9d9df] bg-[#CEE6FF] hover:border-blue-500 hover:bg-[#CEE6FF]/80 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'rectangle')}
+                >
+                  <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Process Step</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-[#b8a176] bg-[#CEC4DA] hover:border-blue-500 hover:bg-[#CEC4DA]/80 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'rectangleTan')}
+                >
+                  <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Detail Step</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-[#b8a176] bg-[#EBC8C7] hover:border-blue-500 hover:bg-[#EBC8C7]/80 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'rectangleRed')}
+                >
+                  <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Red Step</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-[#b8a176] bg-[#DCDCDC] hover:border-blue-500 hover:bg-[#DCDCDC]/80 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'rectangleGrey')}
+                >
+                  <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Grey Step</span>
+                </Button>
+              </>
+            )}
             <Button 
               variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 border-[#c9d9df] bg-[#deeaee] hover:border-blue-500 hover:bg-[#deeaee]/80 transition-all group"
-              onClick={() => activeParentId && addNewNode(activeParentId, 'rectangle')}
-            >
-              <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
-              <span className="font-bold uppercase tracking-tight text-[10px] text-black">Process Step</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 border-[#b8a176] bg-[#dac292] hover:border-blue-500 hover:bg-[#dac292]/80 transition-all group"
-              onClick={() => activeParentId && addNewNode(activeParentId, 'rectangleTan')}
-            >
-              <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
-              <span className="font-bold uppercase tracking-tight text-[10px] text-black">Detail Step</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 border-slate-200 hover:border-black hover:bg-slate-50 transition-all group"
+              className="h-24 flex flex-col gap-2 border-2 border-slate-200 bg-[#FFFFCC] hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
               onClick={() => activeParentId && addNewNode(activeParentId, 'diamond')}
             >
               <Diamond className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
@@ -750,26 +787,20 @@ const FlowchartEditorContent = () => {
               <>
                 <Button 
                   variant="outline" 
-                  className="h-24 flex flex-col gap-2 border-2 border-pink-100 bg-pink-50 hover:border-pink-500 hover:bg-pink-100 transition-all group"
+                  className="h-24 flex flex-col gap-2 border-2 border-pink-100 bg-[#FCB3FC] hover:border-pink-500 hover:bg-[#FCB3FC]/80 transition-all group"
                   onClick={() => activeParentId && addNewNode(activeParentId, 'hexagon')}
                 >
-                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[url(#violetGradient-dialog)] transition-colors" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="violetGradient-dialog" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{ stopColor: '#5b21b6' }} />
-                        <stop offset="100%" style={{ stopColor: '#ffffff' }} />
-                      </linearGradient>
-                    </defs>
+                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1.2 8 L22.8 8 L24 12 L22.8 16 L1.2 16 L0 12 Z" strokeWidth="2" />
                   </svg>
                   <span className="font-bold uppercase tracking-tight text-[10px] text-black">Hexagon</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-lime-50 hover:border-lime-500 hover:bg-lime-100 transition-all group"
+                  className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-[#CCFFCC] hover:border-lime-500 hover:bg-[#CCFFCC]/80 transition-all group"
                   onClick={() => activeParentId && addNewNode(activeParentId, 'preparation')}
                 >
-                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
                     <rect x="2" y="2" width="18" height="12" strokeWidth="2" />
                   </svg>
@@ -781,10 +812,10 @@ const FlowchartEditorContent = () => {
             {activeParentId === 'section-end' && (
               <Button 
                 variant="outline" 
-                className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-white hover:border-lime-500 hover:bg-lime-50 transition-all group"
+                className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-[#CCFFCC] hover:border-lime-500 hover:bg-[#CCFFCC]/80 transition-all group"
                 onClick={() => activeParentId && addNewNode(activeParentId, 'hexagonLime')}
               >
-                <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-lime-400 transition-colors" xmlns="http://www.w3.org/2000/svg">
+                <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
                   <path d="M4 8 L20 8 L22 12 L20 16 L4 16 L2 12 Z" strokeWidth="2" />
                 </svg>
                 <span className="font-bold uppercase tracking-tight text-[10px] text-black">End Hexagon</span>

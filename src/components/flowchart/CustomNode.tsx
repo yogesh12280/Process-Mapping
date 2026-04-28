@@ -6,7 +6,7 @@ import { Play, CheckCircle2, User, Box } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type NodeType = 'start' | 'end' | 'user' | 'step';
-export type NodeShape = 'rectangle' | 'rectangleTan' | 'diamond' | 'preparation' | 'hexagon' | 'hexagonLime';
+export type NodeShape = 'rectangle' | 'rectangleTan' | 'rectangleRed' | 'rectangleGrey' | 'diamond' | 'preparation' | 'hexagon' | 'hexagonLime';
 
 export interface CustomNodeData {
   label: string;
@@ -73,8 +73,10 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
     }
     
     // Prioritize specific shape colors for recognized process/detail steps
-    if (shape === 'rectangle') return cn(baseBorder, "bg-[#deeaee]", "shadow-sm", selectionRing);
-    if (shape === 'rectangleTan') return cn(baseBorder, "bg-[#dac292]", "shadow-sm", selectionRing);
+    if (shape === 'rectangle') return cn(baseBorder, "bg-[#CEE6FF]", "shadow-sm", selectionRing);
+    if (shape === 'rectangleTan') return cn(baseBorder, "bg-[#CEC4DA]", "shadow-sm", selectionRing);
+    if (shape === 'rectangleRed') return cn(baseBorder, "bg-[#EBC8C7]", "shadow-sm", selectionRing);
+    if (shape === 'rectangleGrey') return cn(baseBorder, "bg-[#DCDCDC]", "shadow-sm", selectionRing);
 
     switch (type) {
       case 'start': return cn(baseBorder, "bg-emerald-50/10", selectionRing);
@@ -91,6 +93,8 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
       case 'hexagon':
       case 'hexagonLime': return "rounded-none w-full h-full";
       case 'rectangleTan':
+      case 'rectangleRed':
+      case 'rectangleGrey':
       default: return "rounded-xl w-full h-full"; // rectangle variants
     }
   };
@@ -123,9 +127,9 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
         <NodeResizer 
           color="hsl(var(--primary))" 
           isVisible={selected} 
-          minWidth={shape === 'rectangle' || shape === 'rectangleTan' || shape === 'hexagon' || shape === 'hexagonLime' ? 150 : (shape === 'preparation' ? 115 : 100)} 
-          minHeight={shape === 'rectangle' || shape === 'rectangleTan' || shape === 'hexagon' || shape === 'hexagonLime' ? 60 : (shape === 'preparation' ? 80 : 100)} 
-          keepAspectRatio={shape !== 'rectangle' && shape !== 'rectangleTan' && shape !== 'preparation' && shape !== 'hexagon' && shape !== 'hexagonLime'}
+          minWidth={['rectangle', 'rectangleTan', 'rectangleRed', 'rectangleGrey', 'hexagon', 'hexagonLime'].includes(shape) ? 150 : (shape === 'preparation' ? 115 : 100)} 
+          minHeight={['rectangle', 'rectangleTan', 'rectangleRed', 'rectangleGrey', 'hexagon', 'hexagonLime'].includes(shape) ? 60 : (shape === 'preparation' ? 80 : 100)} 
+          keepAspectRatio={!['rectangle', 'rectangleTan', 'rectangleRed', 'rectangleGrey', 'preparation', 'hexagon', 'hexagonLime'].includes(shape)}
         />
       )}
 
@@ -199,7 +203,7 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
               </defs>
               <polygon 
                 points="10,0 90,0 100,50 90,100 10,100 0,50" 
-                fill={shape === 'hexagonLime' ? "#a3e635" : "url(#violetGradientNode)"} 
+                fill={shape === 'hexagonLime' ? "#CCFFCC" : "#FCB3FC"} 
                 stroke="black" 
                 strokeWidth="2" 
                 vectorEffect="non-scaling-stroke"
@@ -212,7 +216,7 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
             <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="drop-shadow-sm">
               <polygon 
                 points="50,0 100,50 50,100 0,50" 
-                fill={type === 'start' ? "#ecfdf5" : (type === 'end' ? "#fff1f2" : (type === 'user' ? "#f8fafc" : "white"))} 
+                fill="#FFFFCC" 
                 stroke="black" 
                 strokeWidth="2" 
                 vectorEffect="non-scaling-stroke"
@@ -226,13 +230,18 @@ const CustomNode = ({ id, data, selected }: NodeProps) => {
               {/* Back Layer - Hexagon */}
               <polygon 
                 points="10,10 90,10 100,50 90,90 10,90 0,50" 
-                className="fill-lime-400/50 stroke-black stroke-[2px]"
+                fill="#CCFFCC"
+                fillOpacity="0.5"
+                stroke="black"
+                strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
               />
               {/* Front Layer - Rectangle */}
               <rect 
                 x="2" y="2" width="88" height="80" 
-                className="fill-lime-400 stroke-black stroke-[2px]"
+                fill="#CCFFCC"
+                stroke="black"
+                strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
