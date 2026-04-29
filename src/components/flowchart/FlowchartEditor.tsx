@@ -462,8 +462,16 @@ const FlowchartEditorContent = () => {
         if (isRectangle && sectionRole !== 'user') {
           return;
         }
+
+        if (type === 'diamond' && sectionRole !== 'user') {
+          return;
+        }
         
-        if ((type === 'preparation' || type === 'hexagon') && sectionRole !== 'start' && sectionRole !== 'end') {
+        if (type === 'hexagon' && sectionRole !== 'start') {
+          return;
+        }
+        
+        if (type === 'preparation' && sectionRole !== 'start' && sectionRole !== 'end') {
           return;
         }
 
@@ -609,10 +617,7 @@ const FlowchartEditorContent = () => {
         </div>
         
         {/* Responsive Shapes Container - tighter spacing to prevent overflow */}
-        <div className={cn(
-          "flex-1 flex flex-col justify-center gap-1.5 w-full min-h-0 px-2 py-1 overflow-hidden mt-2",
-          isLocked && "opacity-50 cursor-default"
-        )}>
+        <div className="flex-1 flex flex-col justify-center gap-1.5 w-full min-h-0 px-2 py-1 overflow-hidden mt-2">
           <div 
             className={cn(
               "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm transition-all group",
@@ -675,7 +680,7 @@ const FlowchartEditorContent = () => {
             )}
             draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'hexagon')}
-            title="Drag Start/End Hexagon (Start & End Sections)"
+            title="Drag Start Hexagon (Start Section Only)"
           >
             <svg viewBox="0 0 24 24" className="h-6 w-6 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 8 L20 8 L23 12 L20 16 L4 16 L1 12 Z" strokeWidth="2" />
@@ -814,41 +819,42 @@ const FlowchartEditorContent = () => {
                   <RectangleHorizontal className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
                   <span className="font-bold uppercase tracking-tight text-[10px] text-black">Grey Step</span>
                 </Button>
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex flex-col gap-2 border-2 border-slate-200 bg-[#FFFFCC] hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
+                  onClick={() => activeParentId && addNewNode(activeParentId, 'diamond')}
+                >
+                  <Diamond className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
+                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Decision</span>
+                </Button>
               </>
             )}
-            <Button 
-              variant="outline" 
-              className="h-24 flex flex-col gap-2 border-2 border-slate-200 bg-[#FFFFCC] hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
-              onClick={() => activeParentId && addNewNode(activeParentId, 'diamond')}
-            >
-              <Diamond className="h-8 w-8 text-black group-hover:scale-110 transition-transform" />
-              <span className="font-bold uppercase tracking-tight text-[10px] text-black">Decision</span>
-            </Button>
             
+            {activeParentRole === 'start' && (
+              <Button 
+                variant="outline" 
+                className="h-24 flex flex-col gap-2 border-2 border-pink-100 bg-[#FCB3FC] hover:border-pink-500 hover:bg-[#FCB3FC]/80 transition-all group"
+                onClick={() => activeParentId && addNewNode(activeParentId, 'hexagon')}
+              >
+                <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.2 8 L22.8 8 L24 12 L22.8 16 L1.2 16 L0 12 Z" strokeWidth="2" />
+                </svg>
+                <span className="font-bold uppercase tracking-tight text-[10px] text-black">Start Hexagon</span>
+              </Button>
+            )}
+
             {(activeParentRole === 'start' || activeParentRole === 'end') && (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="h-24 flex flex-col gap-2 border-2 border-pink-100 bg-[#FCB3FC] hover:border-pink-500 hover:bg-[#FCB3FC]/80 transition-all group"
-                  onClick={() => activeParentId && addNewNode(activeParentId, 'hexagon')}
-                >
-                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1.2 8 L22.8 8 L24 12 L22.8 16 L1.2 16 L0 12 Z" strokeWidth="2" />
-                  </svg>
-                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Hexagon</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-[#CCFFCC] hover:border-lime-500 hover:bg-[#CCFFCC]/80 transition-all group"
-                  onClick={() => activeParentId && addNewNode(activeParentId, 'preparation')}
-                >
-                  <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
-                    <rect x="2" y="2" width="18" height="12" strokeWidth="2" />
-                  </svg>
-                  <span className="font-bold uppercase tracking-tight text-[10px] text-black">Preparation</span>
-                </Button>
-              </>
+              <Button 
+                variant="outline" 
+                className="h-24 flex flex-col gap-2 border-2 border-lime-100 bg-[#CCFFCC] hover:border-lime-500 hover:bg-[#CCFFCC]/80 transition-all group"
+                onClick={() => activeParentId && addNewNode(activeParentId, 'preparation')}
+              >
+                <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
+                  <rect x="2" y="2" width="18" height="12" strokeWidth="2" />
+                </svg>
+                <span className="font-bold uppercase tracking-tight text-[10px] text-black">Preparation</span>
+              </Button>
             )}
 
             {activeParentId === 'section-end' && (
