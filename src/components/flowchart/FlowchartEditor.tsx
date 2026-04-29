@@ -27,7 +27,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box, Edit3, Save } from 'lucide-react';
+import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box, Edit3, Save, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { NodeShape } from './CustomNode';
 
@@ -598,16 +598,14 @@ const FlowchartEditorContent = () => {
       </Dialog>
 
       {/* Sidebar with shapes moved to the right */}
-      <Card className="w-20 flex flex-col items-center py-3 shadow-lg border-slate-200 h-full max-h-screen overflow-hidden">
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+      <Card className="w-20 flex flex-col items-center py-1.5 shadow-lg border-slate-200 h-full max-h-screen overflow-hidden">
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
           <Box className="h-4 w-4 text-primary" />
           <h3 className="text-[8px] font-black uppercase tracking-widest text-primary vertical-rl">SHAPES</h3>
         </div>
         
-        <Separator className="w-10 my-2 flex-shrink-0" />
-        
-        {/* Responsive Shapes Container - using evenly distributed space to prevent overflow */}
-        <div className="flex-1 flex flex-col justify-around w-full min-h-0 px-2 py-1 overflow-hidden">
+        {/* Responsive Shapes Container - tighter spacing to prevent overflow */}
+        <div className="flex-1 flex flex-col justify-center gap-1.5 w-full min-h-0 px-2 py-1 overflow-hidden mt-2">
           <div 
             className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
@@ -683,23 +681,28 @@ const FlowchartEditorContent = () => {
           </div>
         </div>
         
-        <Separator className="w-12 my-2 flex-shrink-0" />
-        
-        <div className="flex flex-col items-center gap-3 pb-2 flex-shrink-0">
-          <Button
-            variant="default"
-            size="icon"
-            className="w-10 h-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 transition-all flex flex-col gap-0.5 h-auto py-1.5"
-            onClick={handleSave}
-            title="Save Workflow"
-          >
-            <Save className="h-4 w-4 text-white" />
-            <span className="text-[7px] font-bold uppercase tracking-tighter">Save</span>
-          </Button>
-          
-          <div className="flex flex-col items-center gap-0.5">
-             <Separator className="w-8 mb-1" />
-             <p className="text-[7px] font-black text-slate-400 text-center uppercase leading-none px-1">DRAG</p>
+        <div className="flex flex-col items-center gap-1.5 pb-2 flex-shrink-0 pt-2 border-t border-slate-50 w-full">
+          <div className="flex flex-row gap-1 items-center justify-center w-full px-1">
+            <Button
+              variant="default"
+              size="icon"
+              className="w-8 h-8 rounded-lg shadow-md bg-primary hover:bg-primary/90 transition-all flex flex-col gap-0 h-auto py-1 flex-1"
+              onClick={handleSave}
+              title="Save Workflow"
+            >
+              <Save className="h-3 w-3 text-white" />
+              <span className="text-[6px] font-bold uppercase tracking-tighter">Save</span>
+            </Button>
+            <Button
+              variant="default"
+              size="icon"
+              className="w-8 h-8 rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-700 transition-all flex flex-col gap-0 h-auto py-1 flex-1"
+              onClick={handleSave}
+              title="Submit Workflow"
+            >
+              <Check className="h-3 w-3 text-white" />
+              <span className="text-[6px] font-bold uppercase tracking-tighter">Submit</span>
+            </Button>
           </div>
         </div>
       </Card>
