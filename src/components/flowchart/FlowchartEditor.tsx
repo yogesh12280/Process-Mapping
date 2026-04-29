@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { ArrowLeftToLine, ArrowUpToLine, ArrowRightToLine, ArrowDownToLine, Eye, EyeOff, Diamond, RectangleHorizontal, Hexagon, Box, Edit3, Save, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { NodeShape } from './CustomNode';
 
 const SECTION_WIDTH = 240;
@@ -146,9 +147,10 @@ const FlowchartEditorContent = () => {
   }, [isLocked, isMoveEnabled, setNodes]);
 
   const openShapeSelection = useCallback((parentId: string) => {
+    if (isLocked) return;
     setActiveParentId(parentId);
     setIsShapeSelectionOpen(true);
-  }, []);
+  }, [isLocked]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -419,6 +421,8 @@ const FlowchartEditorContent = () => {
     (event: React.DragEvent) => {
       event.preventDefault();
 
+      if (isLocked) return;
+
       const type = event.dataTransfer.getData('application/reactflow');
 
       // check if the dropped element is valid
@@ -605,50 +609,71 @@ const FlowchartEditorContent = () => {
         </div>
         
         {/* Responsive Shapes Container - tighter spacing to prevent overflow */}
-        <div className="flex-1 flex flex-col justify-center gap-1.5 w-full min-h-0 px-2 py-1 overflow-hidden mt-2">
+        <div className={cn(
+          "flex-1 flex flex-col justify-center gap-1.5 w-full min-h-0 px-2 py-1 overflow-hidden mt-2",
+          isLocked && "opacity-50 cursor-default"
+        )}>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'rectangle')}
             title="Drag Rectangle Step"
           >
             <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEC4DA] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEC4DA] border-2 border-[#b8a176] shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'rectangleTan')}
             title="Drag Tan Rectangle Step"
           >
             <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#EBC8C7] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#EBC8C7] border-2 border-[#b8a176] shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'rectangleRed')}
             title="Drag Red Rectangle Step"
           >
             <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#DCDCDC] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#DCDCDC] border-2 border-[#b8a176] shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'rectangleGrey')}
             title="Drag Grey Rectangle Step"
           >
             <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#FFFFCC] border-2 border-slate-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#FFFFCC] border-2 border-slate-100 shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-black hover:bg-[#FFFFCC]/80" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'diamond')}
             title="Drag Diamond Step"
           >
             <Diamond className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#FCB3FC] border-2 border-pink-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#FCB3FC] border-2 border-pink-100 shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'hexagon')}
             title="Drag Start/End Hexagon (Start & End Sections)"
           >
@@ -657,8 +682,11 @@ const FlowchartEditorContent = () => {
             </svg>
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CCFFCC] border-2 border-lime-100 shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'preparation')}
             title="Drag Preparation Step (Start & End Sections)"
           >
@@ -670,8 +698,11 @@ const FlowchartEditorContent = () => {
             </svg>
           </div>
           <div 
-            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
-            draggable
+            className={cn(
+              "w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CCFFCC] border-2 border-lime-100 shadow-sm transition-all group",
+              !isLocked ? "cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500" : "cursor-default"
+            )}
+            draggable={!isLocked}
             onDragStart={(e) => onDragStart(e, 'hexagonLime')}
             title="Drag End Hexagon (End Section Only)"
           >
@@ -681,30 +712,32 @@ const FlowchartEditorContent = () => {
           </div>
         </div>
         
-        <div className="flex flex-col items-center gap-1.5 pb-2 flex-shrink-0 pt-2 border-t border-slate-50 w-full">
-          <div className="flex flex-row gap-1 items-center justify-center w-full px-1">
-            <Button
-              variant="default"
-              size="icon"
-              className="w-8 h-8 rounded-lg shadow-md bg-primary hover:bg-primary/90 transition-all flex flex-col gap-0 h-auto py-1 flex-1"
-              onClick={handleSave}
-              title="Save Workflow"
-            >
-              <Save className="h-3 w-3 text-white" />
-              <span className="text-[6px] font-bold uppercase tracking-tighter">Save</span>
-            </Button>
-            <Button
-              variant="default"
-              size="icon"
-              className="w-8 h-8 rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-700 transition-all flex flex-col gap-0 h-auto py-1 flex-1"
-              onClick={handleSave}
-              title="Submit Workflow"
-            >
-              <Check className="h-3 w-3 text-white" />
-              <span className="text-[6px] font-bold uppercase tracking-tighter">Submit</span>
-            </Button>
+        {!isLocked && (
+          <div className="flex flex-col items-center gap-1.5 pb-2 flex-shrink-0 pt-2 border-t border-slate-50 w-full">
+            <div className="flex flex-row gap-1 items-center justify-center w-full px-1">
+              <Button
+                variant="default"
+                size="icon"
+                className="w-8 h-8 rounded-lg shadow-md bg-primary hover:bg-primary/90 transition-all flex flex-col gap-0 h-auto py-1 flex-1"
+                onClick={handleSave}
+                title="Save Workflow"
+              >
+                <Save className="h-3 w-3 text-white" />
+                <span className="text-[6px] font-bold uppercase tracking-tighter">Save</span>
+              </Button>
+              <Button
+                variant="default"
+                size="icon"
+                className="w-8 h-8 rounded-lg shadow-md bg-emerald-600 hover:bg-emerald-700 transition-all flex flex-col gap-0 h-auto py-1 flex-1"
+                onClick={handleSave}
+                title="Submit Workflow"
+              >
+                <Check className="h-3 w-3 text-white" />
+                <span className="text-[6px] font-bold uppercase tracking-tighter">Submit</span>
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </Card>
 
       <Dialog open={isAddSectionOpen} onOpenChange={setIsAddSectionOpen}>
