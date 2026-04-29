@@ -598,70 +598,73 @@ const FlowchartEditorContent = () => {
       </Dialog>
 
       {/* Sidebar with shapes moved to the right */}
-      <Card className="w-20 flex flex-col items-center py-4 gap-6 shadow-lg border-slate-200">
-        <div className="flex flex-col items-center gap-1">
-          <Box className="h-5 w-5 text-primary" />
-          <h3 className="text-[9px] font-black uppercase tracking-widest text-primary vertical-rl">SHAPES</h3>
+      <Card className="w-20 flex flex-col items-center py-3 shadow-lg border-slate-200 h-full max-h-screen overflow-hidden">
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          <Box className="h-4 w-4 text-primary" />
+          <h3 className="text-[8px] font-black uppercase tracking-widest text-primary vertical-rl">SHAPES</h3>
         </div>
-        <Separator className="w-10" />
-        <div className="flex flex-col gap-4">
+        
+        <Separator className="w-10 my-2 flex-shrink-0" />
+        
+        {/* Responsive Shapes Container - using evenly distributed space to prevent overflow */}
+        <div className="flex-1 flex flex-col justify-around w-full min-h-0 px-2 py-1 overflow-hidden">
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEE6FF] border-2 border-[#c9d9df] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'rectangle')}
             title="Drag Rectangle Step"
           >
-            <RectangleHorizontal className="h-6 w-6 text-black" />
+            <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CEC4DA] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CEC4DA] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'rectangleTan')}
             title="Drag Tan Rectangle Step"
           >
-            <RectangleHorizontal className="h-6 w-6 text-black" />
+            <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#EBC8C7] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#EBC8C7] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'rectangleRed')}
             title="Drag Red Rectangle Step"
           >
-            <RectangleHorizontal className="h-6 w-6 text-black" />
+            <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#DCDCDC] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#DCDCDC] border-2 border-[#b8a176] shadow-sm cursor-grab active:cursor-grabbing hover:border-blue-500 hover:text-blue-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'rectangleGrey')}
             title="Drag Grey Rectangle Step"
           >
-            <RectangleHorizontal className="h-6 w-6 text-black" />
+            <RectangleHorizontal className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FFFFCC] border-2 border-slate-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#FFFFCC] border-2 border-slate-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-black hover:bg-[#FFFFCC]/80 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'diamond')}
             title="Drag Diamond Step"
           >
-            <Diamond className="h-6 w-6 text-black" />
+            <Diamond className="h-5 w-5 text-black" />
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#FCB3FC] border-2 border-pink-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#FCB3FC] border-2 border-pink-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-pink-500 hover:text-pink-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'hexagon')}
             title="Drag Start/End Hexagon (Start & End Sections)"
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" className="h-6 w-6 stroke-black fill-[#FCB3FC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 8 L20 8 L23 12 L20 16 L4 16 L1 12 Z" strokeWidth="2" />
             </svg>
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'preparation')}
             title="Drag Preparation Step (Start & End Sections)"
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" className="h-6 w-6 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               {/* Back Layer - Hexagon */}
               <path d="M5 6 L19 6 L22 10 L19 14 L5 14 L2 10 Z" strokeWidth="2" fill="none" transform="translate(1, 2)" />
               {/* Front Layer - Rectangle */}
@@ -669,32 +672,35 @@ const FlowchartEditorContent = () => {
             </svg>
           </div>
           <div 
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
+            className="w-10 h-10 mx-auto flex-shrink flex items-center justify-center rounded-lg bg-[#CCFFCC] border-2 border-lime-100 shadow-sm cursor-grab active:cursor-grabbing hover:border-lime-500 hover:text-lime-500 transition-all group"
             draggable
             onDragStart={(e) => onDragStart(e, 'hexagonLime')}
             title="Drag End Hexagon (End Section Only)"
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 24 24" className="h-6 w-6 stroke-black fill-[#CCFFCC] transition-colors" xmlns="http://www.w3.org/2000/svg">
               <path d="M4 8 L20 8 L22 12 L20 16 L4 16 L2 12 Z" strokeWidth="2" />
             </svg>
           </div>
-          
-          <Separator className="w-12 my-2" />
-          
+        </div>
+        
+        <Separator className="w-12 my-2 flex-shrink-0" />
+        
+        <div className="flex flex-col items-center gap-3 pb-2 flex-shrink-0">
           <Button
             variant="default"
             size="icon"
-            className="w-12 h-12 rounded-xl shadow-lg bg-primary hover:bg-primary/90 transition-all flex flex-col gap-1 h-auto py-2"
+            className="w-10 h-10 rounded-lg shadow-lg bg-primary hover:bg-primary/90 transition-all flex flex-col gap-0.5 h-auto py-1.5"
             onClick={handleSave}
             title="Save Workflow"
           >
-            <Save className="h-5 w-5 text-white" />
-            <span className="text-[8px] font-bold uppercase tracking-tighter">Save</span>
+            <Save className="h-4 w-4 text-white" />
+            <span className="text-[7px] font-bold uppercase tracking-tighter">Save</span>
           </Button>
-        </div>
-        <div className="mt-auto flex flex-col items-center gap-2">
-           <Separator className="w-10" />
-           <p className="text-[8px] font-bold text-slate-400 text-center px-1">DRAG & DROP</p>
+          
+          <div className="flex flex-col items-center gap-0.5">
+             <Separator className="w-8 mb-1" />
+             <p className="text-[7px] font-black text-slate-400 text-center uppercase leading-none px-1">DRAG</p>
+          </div>
         </div>
       </Card>
 
